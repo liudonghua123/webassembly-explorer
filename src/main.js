@@ -580,7 +580,7 @@ function App() {
     const BASE_URL = import.meta.env.BASE_URL || '/'
 
     // the sdkUrl need to be full url, or you will got error like "Failed to resolve module specifier '/assets/index-DgoQWoIK.mjs'"
-    await init({ module: `${BASE_URL}${wasmUrl.replace(/^\//, '')}`, sdkUrl: new URL(`${BASE_URL}${sdkUrl.replace(/^\//, '')}`, window.location.origin).href })
+    await init({ module: wasmUrl, sdkUrl: new URL(sdkUrl, window.location.origin).href})
     initializeLogger("debug");
     
     window.__WASMER_INITIALIZED__ = true;
