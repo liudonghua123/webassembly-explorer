@@ -8,7 +8,7 @@ const html = htm.bind(h);
 function generateLibraryCode(libKey, inputMethod, filePath, stdinContent) {
   const args = inputMethod === 'stdin'
     ? []
-    : ['linecount.wasm', '-i', '/public/test.txt'];
+    : ['-i', '/public/test.txt'];
 
   switch (libKey) {
     case 'wasmer':
@@ -319,8 +319,8 @@ function App() {
 
       // 构建参数字符串
       const args = inputMethod === 'stdin'
-        ? ['./linecount']
-        : ['./linecount', '-i', filePath];
+        ? []
+        : ['-i', filePath];
 
       // 初始化 stdin/file 输入缓冲区
       if (inputMethod === 'stdin') {
@@ -574,8 +574,13 @@ function App() {
     if (window.__WASMER_INITIALIZED__) return;
 
     const { init, initializeLogger } = await import("/node_modules/@wasmer/sdk/dist/index.mjs?v=ccc61144");
+    const { default: wasmUrl } = await import("@wasmer/sdk/wasm?url");
+    const { default: sdkUrl } = await import("@wasmer/sdk?url");
     
-    await init();
+    const BASE_URL = import.meta.env.BASE_URL || '/'
+
+    // the sdkUrl need to be full url, or you will got error like "Failed to resolve module specifier '/assets/index-DgoQWoIK.mjs'"
+    await init({ module: `${BASE_URL}${wasmUrl.replace(/^\//, '')}`, sdkUrl: new URL(`${BASE_URL}${sdkUrl.replace(/^\//, '')}`, window.location.origin).href })
     initializeLogger("debug");
     
     window.__WASMER_INITIALIZED__ = true;
@@ -593,7 +598,7 @@ function App() {
 
       const module = await WebAssembly.compile(wasmBinary);
 
-      const args = inputMethod === 'stdin' ? [] : ["linecount.wasm", '-i', '/public/test.txt'];
+      const args = inputMethod === 'stdin' ? [] : ['-i', '/public/test.txt'];
       const mount = {};
       if (inputMethod !== 'stdin') {
         const encoder = new TextEncoder();
@@ -705,7 +710,7 @@ function App() {
   async function runWasm() {
     switch (selectedLib) {
       case 'wasmer':
-        await runWithWasmer();
+        await runWithWasmerWasix();
         break;
       case 'browserWasiShim':
         await runWithBrowserWasiShim();
